@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, width=device-width, viewport-fit=cover"
+    />
+    <title>Firmata Web Example</title>
+  </head>
+  <body>
+    <div class="app">
+      <button id="requestPort">Connect</button>
+    </div>
+
+    <script type="module">
+      import { Firmata, WebSerialTransport } from "../lib/index.js";
+
+      const baudRate = 57600; // Default Firmata baudrate
+
+      // Get all serial ports the user has previously granted the website access to.
+      const ports = await navigator.serial.getPorts();
+      if (ports.length) {
+        connect(ports[0]);
+      }
+
+      document
+        .querySelector("#requestPort")
+        .addEventListener("click", async () => {
+          // Prompt user to select any serial port.
+          const port = await navigator.serial.requestPort();
+
+          connect(port);
+        });
+
+      async function connect(port) {
+        console.log("Connecting to", port);
+
+        // Wait for the serial port to open.
+        await port.open({ baudRate });
+
+        const transport = new WebSerialTransport(port);
+        const board = new Firmata(transport);
+
+        // Log transport
+        // transport.on('write', d => console.log('OUT', d))
+        // transport.on('data', d => console.log('IN', d))
+
+        // Expose
+        window.board = board;
+
+        board.on("ready", () => {
+          console.log("ready");
+
+          // Arduino is ready to communicate
+          const pin = 13;
+          let state = 1;
+
+          board.pinMode(pin, board.MODES.OUTPUT);
+
+          setInterval(() => {
+            board.digitalWrite(pin, (state ^= 1));
+          }, 2000);
+        });
+
+        board.on("connect", () => console.log("Connected!"));
+
+        board.on("close", () => {
+          // Unplug the board to see this event!
+          console.log("Closed!");
+        });
+      }
+    </script>
+  </body>
+</html>

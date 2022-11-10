@@ -15,6 +15,7 @@ Changes to original library:
 
 # Roadmap
 - [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
+- [ ] Remake similar UI as the desktop tool http://firmata.org/wiki/File:ArdFirmVB.png.
 
 # Usage
 Same API as original. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial].

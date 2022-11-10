@@ -73,6 +73,8 @@ async function connect(port) {
 - [NodeJs Buffer]
 
 [WebSerial]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
+[firmata]: http://firmata.org/wiki/Main_Page
+[firmata-js]: https://github.com/firmata/firmata.js/tree/master/packages/firmata.js
 [firmata-io]: https://github.com/firmata/firmata.js/tree/master/packages/firmata-io
 [NodeJs Buffer]: https://nodejs.org/api/buffer.html
 [Good example on WebSerial]: https://web.dev/serial/

@@ -1,7 +1,9 @@
 Control firmata devices directly from your browser
 ===
 
-> This is a rewrite of [firmata-io] to ES2015 and zero dependency that works directly in browser that support [WebSerial].
+> This is a rewrite of [firmata-io] to ES2015 with zero dependency which works directly in browsers that support [WebSerial].
+
+Live demo https://yellow-digital.github.io/firmata-web/examples/index.html
 
 # Why
 Original [firmata-io] has been written for nodejs but doesn't work out of the box in the browser. This library brings support to use [firmata] directly in browsers that support [WebSerial].

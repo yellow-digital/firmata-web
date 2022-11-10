@@ -1,17 +1,20 @@
-ES2015 and zero dependency rewrite of `firmata-io` that works directly in your browser.
+Web version for firmata.
 
-# Develop notes
-Original `firmata-io` had been written for nodejs. Since the rise of the WebSerial API it is now super easy to connect serial devices directly from the browser.
+A rewrite of [firmata-io] to ES2015 and zero dependency that works directly in browser that support [WebSerial].
+
+# Why
+Original [firmata-io] has been written for nodejs but doesn't work out of the box in the browser. But with support of [WebSerial] in some browser it is now easy to quickly create a nice interface for your [firmata] powered device.
 
 Changes to original library:
 - Rewrite to JavaScript modules.
 - A custom polyfill for `Buffer` that works in the browser, based on https://github.com/calvinmetcalf/buffer-es6.
+- a class `WebSerialTransport` to bridge the gap between [firmata-io] and [WebSerial].
 
 # Roadmap
-The polyfill works but adds some unnecessary code. Best would be to rewrite it to use `Uint8Array` directly.
+- [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
 
 # Usage
-Same API as original. Only the bootstrapping is a bit different. There is a special bridge component `WebSerialTransport`.
+Same API as original. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial].
 
 ```js
 import { Firmata, WebSerialTransport } from "../lib/index.js";
@@ -33,24 +36,13 @@ document.querySelector("#requestPort").addEventListener("click", async () => {
 });
 
 async function connect(port) {
-  console.log('Connecting to',port)
-
   // Wait for the serial port to open.
   await port.open({ baudRate });
 
   const transport = new WebSerialTransport(port);
   const board = new Firmata(transport);
 
-  // Log transport
-  // transport.on('write', d => console.log('OUT', d))
-  // transport.on('data', d => console.log('IN', d))
-
-  // Expose
-  window.board = board;
-
   board.on("ready", () => {
-    console.log('ready')
-    
     // Arduino is ready to communicate
     const pin = 13;
     let state = 1;
@@ -72,7 +64,12 @@ async function connect(port) {
 ```
 
 # Links
-- Web_Serial_API https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
-- Original library https://github.com/firmata/firmata.js/tree/master/packages/firmata-io
-- Good example on WebSerial https://web.dev/serial/
-- NodeJs Buffer https://nodejs.org/api/buffer.html
+- [WebSerial]
+- [firmata-io]
+- [Good example on WebSerial]
+- [NodeJs Buffer]
+
+[WebSerial]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
+[firmata-io]: https://github.com/firmata/firmata.js/tree/master/packages/firmata-io
+[NodeJs Buffer]: https://nodejs.org/api/buffer.html
+[Good example on WebSerial]: https://web.dev/serial/

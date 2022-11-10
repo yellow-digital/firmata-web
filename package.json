@@ -1,5 +1,5 @@
 {
-  "name": "firmata-es6",
+  "name": "firmata-web",
   "description": "Firmata protocol implementation",
   "version": "2.3.0",
   "author": "Jelle Hak",

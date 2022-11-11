@@ -16,8 +16,9 @@ Changes to original library:
 - [X] Remake similar UI as the desktop tool.
 
 # Usage
-Same API as original. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial].
-[Live demo](https://yellow-digital.github.io/firmata-web/examples/index.html)
+The API is for most part the same as [firmata-io]. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial]. 
+
+[Blink demo](https://yellow-digital.github.io/firmata-web/examples/index.html)
 
 ```js
 import { Firmata, WebSerialTransport } from "../lib/index.js";

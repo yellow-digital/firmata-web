@@ -58,8 +58,6 @@ async function connect(port) {
     }, 2000);
   });
 
-  board.on("connect", () => console.log("Connected!"));
-
   board.on("close", () => {
     // Unplug the board to see this event!
     console.log("Closed!");

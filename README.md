@@ -3,19 +3,19 @@ Control firmata devices directly from your browser
 
 > This is a rewrite of [firmata-io] to ES2015 with zero dependency which works directly in browsers that support [WebSerial].
 
-Live demo https://yellow-digital.github.io/firmata-web/examples/index.html
+[Live demo](https://yellow-digital.github.io/firmata-web/examples/index.html)
 
 # Why
 Original [firmata-io] has been written for nodejs but doesn't work out of the box in the browser. This library brings support to use [firmata] directly in browsers that support [WebSerial].
 
 Changes to original library:
 - Rewrite to JavaScript modules.
-- A custom polyfill for `Buffer` that works in the browser, based on https://github.com/calvinmetcalf/buffer-es6.
+- A custom polyfill for `Buffer` that works in the browser, based on [buffer-es6](https://github.com/calvinmetcalf/buffer-es6).
 - a class `WebSerialTransport` to bridge the gap between [firmata-io] and [WebSerial].
 
 # Roadmap
 - [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
-- [ ] Remake similar UI as the desktop tool http://firmata.org/wiki/File:ArdFirmVB.png.
+- [X] Remake similar UI as the desktop tool.
 
 # Usage
 Same API as original. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial].

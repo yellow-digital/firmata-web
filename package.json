@@ -1,7 +1,7 @@
 {
   "name": "firmata-web",
   "description": "Firmata protocol implementation",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "author": "Jelle Hak",
   "contributors": [
     "Julian Gautier"
@@ -14,6 +14,7 @@
   },
   "main": "lib/index.js",
   "scripts": {
+    "start": "npm run dev",
     "dev": "npx browser-sync . --directory --watch",
     "build": "npx rollup lib/index.js -o dist/firmata-web.js"
   }

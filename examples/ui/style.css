@@ -1,0 +1,99 @@
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  /* margin: 0; */
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+  }
+}
+
+main {
+  margin-left: 20px;
+  margin-right: 20px;
+  display: flex;
+}
+
+t-flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+t-renderer {
+  height: 100vh;
+  display: flex;
+  /* hide overlay elements */
+  overflow: hidden;
+  position: relative;
+}
+
+/* Grid */
+v-container {
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 1185px;
+}
+v-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+v-row > * {
+  width: 100%;
+}
+@media (min-width: 900px) {
+  v-row > * {
+    width: 50%;
+  }
+}
+
+/* <gui-info></gui-info> */
+gui-info {
+  background-color: rgba(240, 248, 255, 0.8);
+  padding: 20px;
+  position: absolute;
+  border-radius: 0 0 20px 0;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  z-index: 1;
+  max-width: 500px;
+}
+
+@media (prefers-color-scheme: dark) {
+  gui-info {
+    background-color: rgba(0, 0, 0, 0.8);
+    box-shadow: rgba(255, 255, 255, 0.2) 0px 7px 29px 0px;
+    color: white;
+  }
+}
+
+/*
+<v-alert type="warning" outlined shaped>Broken</v-alert>
+<v-alert type="warning" shaped>Broken</v-alert>
+*/
+v-alert {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  /* position: relative; */
+  transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+}
+v-alert {
+  color: white;
+  background: currentColor;
+}
+v-alert[outlined] {
+  background: transparent !important;
+  border: thin solid currentColor;
+}
+v-alert[shaped] {
+  border-radius: 24px 4px;
+}
+
+[type='warning'] {
+  color: #fb8c00;
+  caret-color: #fb8c00;
+}

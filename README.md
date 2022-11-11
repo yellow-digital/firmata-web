@@ -3,8 +3,6 @@ Control firmata devices directly from your browser
 
 > This is a rewrite of [firmata-io] to ES2015 with zero dependency which works directly in browsers that support [WebSerial].
 
-[Live demo](https://yellow-digital.github.io/firmata-web/examples/index.html)
-
 # Why
 Original [firmata-io] has been written for nodejs but doesn't work out of the box in the browser. This library brings support to use [firmata] directly in browsers that support [WebSerial].
 
@@ -19,6 +17,7 @@ Changes to original library:
 
 # Usage
 Same API as original. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial].
+[Live demo](https://yellow-digital.github.io/firmata-web/examples/index.html)
 
 ```js
 import { Firmata, WebSerialTransport } from "../lib/index.js";
@@ -66,6 +65,13 @@ async function connect(port) {
   });
 }
 ```
+
+# Get Started
+Feel play around with a simple UI for this library.
+
+[<img width="445" alt="image" src="https://user-images.githubusercontent.com/1216650/201372823-0661d34c-6068-4168-bbe3-acf659ca581b.png">
+](https://yellow-digital.github.io/firmata-web/examples/ui/index.html)
+
 
 # Links
 - [WebSerial]

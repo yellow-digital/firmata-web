@@ -6,6 +6,14 @@
       name="viewport"
       content="initial-scale=1, width=device-width, viewport-fit=cover"
     />
+    <script type="importmap">
+      {
+        "imports": {
+          "firmata-web/": "../../"
+        }
+      }
+    </script>
+    
     <title>Firmata Test</title>
     <style>
     @import url("./style.css");
@@ -14,6 +22,8 @@
   <body>
     <f-interface connect></f-interface>
 
-    <script src="app.js" type="module"></script>
+    <script type="module">
+      import "./f-interface.js"
+    </script>
   </body>
 </html>

@@ -1,7 +1,6 @@
-import { Firmata, WebSerialTransport, TYPES } from "../../lib/index.js";
+import { Firmata, WebSerialTransport, TYPES } from "firmata-web/lib/index.js";
 // import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 import { defineCustomElement } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
-import { GUI } from "https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm"
 
 const baudRate = 57600; // Default Firmata baudrate
 
@@ -63,15 +62,16 @@ const VSelect = {
 
 customElements.define("v-select", defineCustomElement(VSelect));
 
-const gui = new GUI();
-
-const folder = gui;
-
 const MyVueElement = {
   props: {
     connect: { type: Boolean },
   },
-  emits: {},
+  emits: {
+    'created': null,
+    'ready': null,
+    'close': null,
+    'mounted': null
+  },
   data: (vm) => ({
     connecting: null,
     connected: null,
@@ -88,6 +88,9 @@ const MyVueElement = {
   async created() {
     const board = new Firmata();
     this.board = board;
+
+    this.$emit('created', this)
+
     // expose
     console.log('Feel free to interact with `board`')
     window.board = board;
@@ -95,11 +98,6 @@ const MyVueElement = {
     this.toItems = (supportedModes = []) => {
       return supportedModes.map((key) => ({ value: key, text: MODES[key] }));
     };
-
-    // Expose some options
-    gui.add(board.settings, "samplingInterval").min(10).max(65535).onChange(v => {
-      board.setSamplingInterval(v)
-    })
 
     this.disconnect = async () => {
       if (!this.transport) console.warn("no transport");
@@ -123,7 +121,7 @@ const MyVueElement = {
     };
     this.onModeChange = (pin, event) => {
       const mode = Number(event.detail[0]);
-      console.log(pin, event, mode);
+      // console.log(pin, event, mode);
       // board.pinMode(pin, Number(event.detail[0]));
       if (mode === TYPES.MODES.ANALOG) {
         board.analogRead(board.pinToAnalogPin(pin), (v)=> {
@@ -134,22 +132,29 @@ const MyVueElement = {
     };
 
     const ready = () => {
-      console.log("ready");
       this.connecting = false;
       this.connected = true;
+      this.$emit('ready', this)
     };
 
     board.on("ready", ready);
     board.on("close", () => { 
-      console.log('closed') 
       this.connected = false;
+      this.$emit('close', this)
     });
 
     this.pair = async (port) => {
       this.port = port;
       this.connecting = true;
       // Wait for the serial port to open.
-      await port.open({ baudRate });
+      try {
+        await port.open({ baudRate });
+      } catch(err) {
+        console.warn(err)
+        alert(err)
+        this.connecting = false;
+        throw new Error(err)
+      }
 
       const transport = new WebSerialTransport(port);
       board.transport = transport
@@ -177,6 +182,7 @@ const MyVueElement = {
 
   async mounted() {
     window.app = this;
+    this.$emit('ready', this)
   },
 
   template: html` <div>

@@ -1,11 +1,11 @@
 import { Firmata, WebSerialTransport, TYPES } from "firmata-web/lib/index.js";
 // import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
-import { defineCustomElement } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import { defineCustomElement, reactive } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const baudRate = 57600; // Default Firmata baudrate
 
 // Default board
-export const board = new Firmata();
+export const board = reactive(new Firmata())
 
 function swap(o, r = {}) {
   return Object.keys(o).map((k) => (r[o[k]] = k)) && r;
@@ -91,7 +91,7 @@ const MyVueElement = {
   async created() {
     // const board = new Firmata();
     this.board = board;
-
+    
     // expose
     console.log('Feel free to interact with `board`')
     window.board = board;

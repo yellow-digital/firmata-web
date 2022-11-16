@@ -1,11 +1,14 @@
 import { Firmata, WebSerialTransport, TYPES } from "firmata-web/lib/index.js";
 // import { createApp } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
-import { defineCustomElement, reactive } from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+import {
+  defineCustomElement,
+  reactive,
+} from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
 
 const baudRate = 57600; // Default Firmata baudrate
 
 // Default board
-export const board = reactive(new Firmata())
+export const board = reactive(new Firmata());
 
 function swap(o, r = {}) {
   return Object.keys(o).map((k) => (r[o[k]] = k)) && r;
@@ -51,10 +54,11 @@ const VSelect = {
   },
   emits: {},
   template: html` <div>
-    <select @change="onChange">
+    <select @change="onChange" :value="value">
       <option
         v-for="(item, index) in items"
         :value="item.value"
+        :selected="value === 'item.value'"
         :key="item.value || index"
       >
         {{ item.text || item }}
@@ -70,10 +74,8 @@ const MyVueElement = {
     connect: { type: Boolean },
   },
   emits: {
-    'created': null,
-    'ready': null,
-    'close': null,
-    'mounted': null
+    ready: null,
+    close: null,
   },
   data: (vm) => ({
     connecting: null,
@@ -91,11 +93,11 @@ const MyVueElement = {
   async created() {
     // const board = new Firmata();
     this.board = board;
-    
+
     // expose
-    console.log('Feel free to interact with `board`')
+    console.log("Feel free to interact with `board`");
     window.board = board;
-    
+
     this.toItems = (supportedModes = []) => {
       return supportedModes.map((key) => ({ value: key, text: MODES[key] }));
     };
@@ -106,16 +108,16 @@ const MyVueElement = {
 
       // TODO
       console.warn("currently not working");
-      board.serialClose()
+      board.serialClose();
       // await this.transport.reader.releaseLock();
       // await this.port.close()
     };
 
     this.onSetServo = (pin) => (event) => {
-      board.servoWrite(pin, Number(event.target.value))
+      board.servoWrite(pin, Number(event.target.value));
     };
     this.onPWMChange = (pin) => (event) => {
-      board.pwmWrite(pin, Number(event.target.value))
+      board.pwmWrite(pin, Number(event.target.value));
     };
     this.onDigitalValueChange = (pin) => (event) => {
       board.digitalWrite(pin, event.target.checked);
@@ -123,25 +125,22 @@ const MyVueElement = {
     this.onModeChange = (pin, event) => {
       const mode = Number(event.detail[0]);
       // console.log(pin, event, mode);
-      // board.pinMode(pin, Number(event.detail[0]));
-      if (mode === TYPES.MODES.ANALOG) {
-        board.analogRead(board.pinToAnalogPin(pin), (v)=> {
-          // trigger vue change
-          this.board.pins = [...this.board.pins]
-        })
-      }
+      board.pinMode(pin, mode);
+
+      // Turn on / off analog reading
+      board.reportAnalogPin(board.pinToAnalogPin(pin), mode === TYPES.MODES.ANALOG);
     };
 
     const ready = () => {
       this.connecting = false;
       this.connected = true;
-      this.$emit('ready', this)
+      this.$emit("ready", this);
     };
 
     board.on("ready", ready);
-    board.on("close", () => { 
+    board.on("close", () => {
       this.connected = false;
-      this.$emit('close', this)
+      this.$emit("close", this);
     });
 
     this.pair = async (port) => {
@@ -150,15 +149,15 @@ const MyVueElement = {
       // Wait for the serial port to open.
       try {
         await port.open({ baudRate });
-      } catch(err) {
-        console.warn(err)
-        alert(err)
+      } catch (err) {
+        console.warn(err);
+        alert(err);
         this.connecting = false;
-        throw new Error(err)
+        throw new Error(err);
       }
 
       const transport = new WebSerialTransport(port);
-      board.transport = transport
+      board.transport = transport;
 
       await board.connect();
       this.board = board;
@@ -171,7 +170,7 @@ const MyVueElement = {
 
       this.pair(port);
     };
-    
+
     // Get all serial ports the user has previously granted the website access to.
     if (this.connect) {
       const ports = await navigator.serial.getPorts();
@@ -240,8 +239,10 @@ const MyVueElement = {
     </d-flex>
     <footer>
       <div v-if="board.firmware">
-        {{board.firmware.name}} 
-        <span v-if="board.firmware.version">{{board.firmware.version.major}}.{{board.firmware.version.minor}}</span>
+        {{board.firmware.name}}
+        <span v-if="board.firmware.version"
+          >{{board.firmware.version.major}}.{{board.firmware.version.minor}}</span
+        >
       </div>
     </footer>
   </div>`,

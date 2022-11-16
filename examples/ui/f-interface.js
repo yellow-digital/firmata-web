@@ -89,8 +89,6 @@ const MyVueElement = {
     const board = new Firmata();
     this.board = board;
 
-    this.$emit('created', this)
-
     // expose
     console.log('Feel free to interact with `board`')
     window.board = board;
@@ -182,7 +180,6 @@ const MyVueElement = {
 
   async mounted() {
     window.app = this;
-    this.$emit('ready', this)
   },
 
   template: html` <div>

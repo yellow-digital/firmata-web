@@ -200,7 +200,7 @@ const MyVueElement = {
       <label>Pin #{{index}}</label>
       <v-select
         :value="pin.mode"
-        @update:modelValue="pin.mode = $event.detail[0]"
+        @update:modelValue="e => pin.mode = Number(e.detail[0])"
         @change="onModeChange(index, $event)"
         :items="toItems(pin.supportedModes)"
       />

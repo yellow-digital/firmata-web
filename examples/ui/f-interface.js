@@ -4,6 +4,9 @@ import { defineCustomElement } from "https://unpkg.com/vue@3/dist/vue.esm-browse
 
 const baudRate = 57600; // Default Firmata baudrate
 
+// Default board
+export const board = new Firmata();
+
 function swap(o, r = {}) {
   return Object.keys(o).map((k) => (r[o[k]] = k)) && r;
 }
@@ -86,7 +89,7 @@ const MyVueElement = {
   }),
 
   async created() {
-    const board = new Firmata();
+    // const board = new Firmata();
     this.board = board;
 
     // expose
@@ -186,9 +189,8 @@ const MyVueElement = {
     <d-toolbar>
       <button @click="onConnectClick" v-if="!connected">Connect</button>
       <button @click="disconnect" v-if="connected">Disconnect</button>
-      <!-- <button @click="persist">Persist</button> -->
     </d-toolbar>
-    <!-- connecting: {{connecting}} -->
+
     <div v-if="connecting">
       <d-loader></d-loader>
       connecting

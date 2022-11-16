@@ -23,7 +23,20 @@
     <f-interface connect></f-interface>
 
     <script type="module">
-      import "./f-interface.js"
+      import {board} from "./f-interface.js"
+      import { GUI } from "https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm"
+      const gui = new GUI();
+
+      // Interact with component
+      // const target = document.querySelector("f-interface")
+      // target.addEventListener('ready', (ctx) => {
+      //   console.log('ready', ctx.detail[0])
+      // })
+
+      // Expose some options
+      gui.add(board.settings, "samplingInterval").min(10).max(65535).onChange(v => {
+        board.setSamplingInterval(v)
+      })
     </script>
   </body>
 </html>

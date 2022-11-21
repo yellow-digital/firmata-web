@@ -166,7 +166,7 @@ export class SerialPort {
 
 // these are the hardware specific initialization procedures...
 serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
-  let data = serial.hexToDataView(0); // null data
+  let data = hexToDataView(0); // null data
   await controlledTransfer(
     obj,
     "out",
@@ -202,7 +202,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     0x0706,
     2
   );
-  r = serial.arrayBufferToHex(r);
+  r = arrayBufferToHex(r);
   if (r < 0) {
     // we have an error
     return;
@@ -255,7 +255,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     0x0706,
     2
   );
-  r = serial.arrayBufferToHex(r);
+  r = arrayBufferToHex(r);
   if (r < 0) {
     // we have an error
     return;
@@ -275,7 +275,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
 };
 
 serial["CH340"].setBaudRate = async function (obj, baudRate) {
-  let data = serial.hexToDataView(0);
+  let data = hexToDataView(0);
   await controlledTransfer(
     obj,
     "out",
@@ -390,7 +390,7 @@ async function controlledTransfer(
 // oxx = 017;       // oxx will be set to 15
 // hex = 0xF;       // hex will be set to 15
 // note: bB oO xX are all valid
-serial.hexToDataView = function (number) {
+function hexToDataView (number) {
   if (number === 0) {
     let array = new Uint8Array([0]);
     return new DataView(array.buffer);
@@ -407,7 +407,7 @@ serial.hexToDataView = function (number) {
 };
 
 // you can give this method a string like "00 AA F2 01 23" or "0x00 0xAA 0xF2 0x01 0x23" and it will turn it into a DataView for the webUSB API transfer data
-serial.hexStringArrayToDataView = function (hexString) {
+function hexStringArrayToDataView(hexString) {
   // remove the leading 0x (if any)
   hexString = hexString.replace(/^0x/, "");
   // split the string into pairs of octets
@@ -420,7 +420,7 @@ serial.hexStringArrayToDataView = function (hexString) {
   return new DataView(array.buffer);
 };
 
-serial.arrayBufferToHex = function (arrayBuffer) {
+function arrayBufferToHex(arrayBuffer) {
   let hex =
     "0x0" +
     Array.prototype.map

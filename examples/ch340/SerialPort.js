@@ -239,8 +239,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     0x0706,
     2
   );
-  r = arrayBufferToHex(r);
-  if (r < 0) {
+  if (!r) {
     // we have an error
     return;
   }
@@ -292,8 +291,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     0x0706,
     2
   );
-  r = arrayBufferToHex(r);
-  if (r < 0) {
+  if (!r) {
     // we have an error
     return;
   }
@@ -441,15 +439,4 @@ function hexToDataView(number) {
   });
   let array = new Uint8Array(integers);
   return new DataView(array.buffer);
-}
-
-function arrayBufferToHex(arrayBuffer) {
-  let hex =
-    "0x0" +
-    Array.prototype.map
-      .call(new Uint8Array(arrayBuffer), (x) =>
-        ("00" + x.toString(16)).slice(-2)
-      )
-      .join("");
-  return parseInt(hex);
 }

@@ -1,109 +1,88 @@
-import {SerialPort} from "./SerialPort.js"
+import { Firmata, Emitter } from "../../lib/index.js";
+import { SerialPort } from "./SerialPort.js";
 
-window.addEventListener("load", initiate, false);
+const serial = new SerialPort()
 
-
-
-const serial = {};
-let device = {};
-let port;
-
-serial.getPorts = function () {
-  return navigator.usb.getDevices().then((devices) => {
-    return devices.map((device) => new SerialPort(device));
-  });
-};
-
-serial.requestPort = async function () {
-  let supportedHardware = [];
-  //This one create the filter of hardware based on the hardware table
-  // Object.keys(table).map(vendorId => {
-  //     Object.keys(table[vendorId]).map(vendorName => {
-  //         Object.keys(table[vendorId][vendorName]).map(productId => {
-  //             supportedHardware.push({
-  //                 "vendorId": vendorId,
-  //                 "productId": productId
-  //             })
-  //         })
-  // })});
-  //device contains the "device descriptor" (see USB standard), add as a new device to be able to control
-  const device = await navigator.usb.requestDevice({
-    filters: supportedHardware,
-  });
-  new SerialPort(device);
-};
-
-//GUI function "connect"
-function connect() {
-  port.connect().then(() => {
-    document.getElementById("editor").value =
-      "connected to: " +
-      device.hostName +
-      "\nvendor name: " +
-      device.vendorName +
-      "\nchip type: " +
-      device.chip;
-
-    boardEl;
+export class CustomTransport extends Emitter {
+  constructor(port) {
+    super();
+    this.port = port;
 
     port.onReceive = (data) => {
-      console.log(data);
-      document.getElementById("output").value += new TextDecoder().decode(data);
+    //   console.log('RX', new TextDecoder().decode(data.buffer));
+      this.emit("data", new Uint8Array(data.buffer));
     };
     port.onReceiveError = (error) => {
-      //console.error(error);
+      console.error(error);
       port.disconnect();
     };
-  });
-}
+  }
 
-//GUI function "disconnect"
-function disconnect() {
-  port.disconnect();
-}
-
-//GUI function "send"
-function send(string) {
-  console.log("sending to serial:" + string.length);
-  if (string.length === 0) return;
-  console.log("sending to serial: [" + string + "]\n");
-
-  let data = new TextEncoder("utf-8").encode(string);
-  console.log(data);
-  if (port) {
-    port.send(data);
+  async write(data) {
+    this.port.send(data);
   }
 }
 
-const boardEl = document.querySelector("f-board");
+const baudRate = 57600; // Default Firmata baudrate
 
-//the init function which we have an event listener connected to
-function initiate() {
-  serial.getPorts().then((ports) => {
-    //these are devices already paired, let's try the first one...
-    if (ports.length > 0) {
-      port = ports[0];
-      connect();
-    }
+// ====
+// custom serial polyfill
+{
+  // Autoconnect
+  // Get all serial ports the user has previously granted the website access to.
+  const ports = await serial.getPorts();
+  if (ports.length) {
+    connect(ports[0]);
+  }
+}
+{
+  document
+    .querySelector("#requestPort")
+    .addEventListener("click", async () => {
+      // Prompt user to select any serial port.
+      const port = await serial.requestPort();
+      connect(port);
+    });
+}
+
+async function connect(port) {
+  window.port = port;
+
+  const statusEl = document.querySelector("#status");
+
+  console.log("Connecting to", port);
+  statusEl.innerHTML = `Connecting...`;
+
+  // Wait for the serial port to open.
+  await port.open({ baudRate });
+
+  const transport = new CustomTransport(port);
+  const board = new Firmata(transport);
+
+  // Expose
+  window.board = board;
+
+  board.on("ready", () => {
+    statusEl.innerHTML = `board ready`;
+    console.log("ready");
+
+    // Arduino is ready to communicate
+    const pin = 13;
+    let state = 1;
+
+    board.pinMode(pin, board.MODES.OUTPUT);
+
+    setInterval(() => {
+      const value = (state ^= 1);
+      statusEl.innerHTML = `Led is : ${value}`;
+      board.digitalWrite(pin, value);
+    }, 2000);
   });
 
-  document.querySelector("#connect").onclick = async function () {
-    await serial.requestPort().then((selectedPort) => {
-      if (port === undefined || port.device_ !== selectedPort.device_) {
-        port = selectedPort;
-        connect();
-      } else {
-        // port already selected...
-      }
-    });
-  };
+  board.on("connect", () => console.log("Connected!"));
 
-  document.querySelector("#disconnect").onclick = function () {
-    disconnect();
-  };
-
-  document.querySelector("#submit").onclick = () => {
-    let source = document.querySelector("#editor").value;
-    send(source);
-  };
+  board.on("close", () => {
+    // Unplug the board to see this event!
+    console.log("Closed!");
+  });
 }

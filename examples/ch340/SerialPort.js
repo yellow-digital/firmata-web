@@ -1,9 +1,15 @@
+/**
+ * Polyfill for CH340. 
+ * Similar API as https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
+ * 
+ * Based on code from https://stackoverflow.com/questions/64929987/webusb-api-working-but-the-data-received-arent-decoded-properly
+ */
 //set it to the active device..
 let device = {};
 let serial = {};
 let port;
 
-const config = {
+export const config = {
   DEBUG: false,
   DEFAULT_BAUD_RATE: 57600,
   BAUD_RATES: [
@@ -42,7 +48,7 @@ const config = {
 };
 
 //The different hardware we support + their specific data/configs
-const table = {
+export const table = {
   0x0403: {
     FTDI: {
       0x6001: "FT232R",
@@ -80,6 +86,33 @@ export class SerialPort {
   // Hooks
   onReceive(data) {}
   onReceiveError(err) {}
+
+  getPorts() {
+    return navigator.usb.getDevices().then((devices) => {
+      return devices.map((device) => new SerialPort(device));
+    });
+  }
+
+  async requestPort() {
+    let supportedHardware = [];
+    //device contains the "device descriptor" (see USB standard), add as a new device to be able to control
+    const device = await navigator.usb.requestDevice({
+      filters: supportedHardware,
+    });
+    const port = new SerialPort(device);
+    return port
+  }
+
+  /**
+   * https://developer.mozilla.org/en-US/docs/Web/API/SerialPort/open
+   * @param {*} config 
+   */
+  open(config = {
+    baudRate: 57600
+  }) {
+    // TODO handle baudRate
+    this.connect()
+  }
 
   //here's the config + read loop is taking place....
   connect() {
@@ -394,7 +427,7 @@ async function controlledTransfer(
 // oxx = 017;       // oxx will be set to 15
 // hex = 0xF;       // hex will be set to 15
 // note: bB oO xX are all valid
-function hexToDataView (number) {
+function hexToDataView(number) {
   if (number === 0) {
     let array = new Uint8Array([0]);
     return new DataView(array.buffer);
@@ -408,7 +441,7 @@ function hexToDataView (number) {
   });
   let array = new Uint8Array(integers);
   return new DataView(array.buffer);
-};
+}
 
 function arrayBufferToHex(arrayBuffer) {
   let hex =
@@ -419,4 +452,4 @@ function arrayBufferToHex(arrayBuffer) {
       )
       .join("");
   return parseInt(hex);
-};
+}

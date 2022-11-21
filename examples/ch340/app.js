@@ -79,7 +79,7 @@ serial.getPorts = function () {
   });
 };
 
-serial.requestPort = function () {
+serial.requestPort = async function () {
   let supportedHardware = [];
   //This one create the filter of hardware based on the hardware table
   // Object.keys(table).map(vendorId => {
@@ -92,9 +92,10 @@ serial.requestPort = function () {
   //         })
   // })});
   //device contains the "device descriptor" (see USB standard), add as a new device to be able to control
-  return navigator.usb
-    .requestDevice({ filters: supportedHardware })
-    .then((device) => new serial.Port(device));
+  const device = await navigator.usb.requestDevice({
+    filters: supportedHardware,
+  });
+  new serial.Port(device);
 };
 
 //set it to the active device..
@@ -188,7 +189,7 @@ serial.Port.prototype.send = function (data) {
   return this.device_.transferOut(this.endpointOut_, data);
 };
 
-async function controlledTransfer (
+async function controlledTransfer(
   object,
   direction,
   type,
@@ -206,50 +207,30 @@ async function controlledTransfer (
     // so set data = 0....N in the call otherwise it will default to 0
     data = 0;
   }
-  return await object.device_["controlTransfer" + direction](
-    {
-      requestType: type,
-      recipient: recipient,
-      request: request,
-      value: value,
-      index: index,
-    },
-    data
-  ).then((res) => {
-    if (config.DEBUG) {
-      //debugger;  // remove comment for extra debugging tools
-      console.log(res);
+  const obj = {
+    requestType: type,
+    recipient: recipient,
+    request: request,
+    value: value,
+    index: index,
+  };
+
+  return await object.device_["controlTransfer" + direction](obj, data).then(
+    (res) => {
+      if (config.DEBUG) {
+        //debugger;  // remove comment for extra debugging tools
+        console.log(res);
+      }
+      if (res.status !== "ok") {
+        console.warn("error!", obj, data); // add more here
+      }
+      if (res.data !== undefined && res.data.buffer !== undefined) {
+        return res.data.buffer;
+      }
+      return null;
     }
-    if (res.status !== "ok") {
-      let errorRequest =
-        `
-                            controlTransfer` +
-        direction +
-        `
-                            'requestType': ` +
-        type +
-        `,
-                            'recipient': ` +
-        recipient +
-        `,
-                            'request': 0x` +
-        request.toString(16) +
-        `,
-                            'value': 0x` +
-        value.toString(16) +
-        `,
-                            'index': 0x` +
-        index.toString(16) +
-        `
-                            }`;
-      console.warn("error!", errorRequest, data); // add more here
-    }
-    if (res.data !== undefined && res.data.buffer !== undefined) {
-      return res.data.buffer;
-    }
-    return null;
-  });
-};
+  );
+}
 
 // you can really use any numerical value since JS treat them the same:
 // dec = 15         // dec will be set to 15

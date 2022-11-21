@@ -11,6 +11,7 @@
   <body>
     <div class="app">
       <button id="requestPort">Connect</button>
+      <div id="status">Led is off</div>
     </div>
 
     <script type="module">
@@ -18,38 +19,48 @@
 
       const baudRate = 57600; // Default Firmata baudrate
 
-      // Get all serial ports the user has previously granted the website access to.
-      const ports = await navigator.serial.getPorts();
-      if (ports.length) {
-        connect(ports[0]);
+      // ====
+      // navigator.serial
+      {
+        // Get all serial ports the user has previously granted the website access to.
+        const ports = await navigator.serial.getPorts();
+        if (ports.length) {
+          connect(ports[0]);
+        }
+
+        document
+          .querySelector("#requestPort")
+          .addEventListener("click", async () => {
+            // Prompt user to select any serial port.
+            const port = await navigator.serial.requestPort();
+
+            connect(port);
+          });
       }
 
-      document
-        .querySelector("#requestPort")
-        .addEventListener("click", async () => {
-          // Prompt user to select any serial port.
-          const port = await navigator.serial.requestPort();
-
-          connect(port);
-        });
-
       async function connect(port) {
+        const statusEl = document.querySelector("#status");
         console.log("Connecting to", port);
+        statusEl.innerHTML = `Connecting...`;
 
         // Wait for the serial port to open.
         await port.open({ baudRate });
 
+        // Create transport
         const transport = new WebSerialTransport(port);
-        const board = new Firmata(transport);
-
         // Log transport
         // transport.on('write', d => console.log('OUT', d))
         // transport.on('data', d => console.log('IN', d))
+
+        // Create board
+        const board = new Firmata(transport);
 
         // Expose
         window.board = board;
 
         board.on("ready", () => {
+          statusEl.innerHTML = `board ready`;
+
           console.log("ready");
 
           // Arduino is ready to communicate
@@ -59,7 +70,9 @@
           board.pinMode(pin, board.MODES.OUTPUT);
 
           setInterval(() => {
-            board.digitalWrite(pin, (state ^= 1));
+            const value = (state ^= 1);
+            statusEl.innerHTML = `Led is : ${value}`;
+            board.digitalWrite(pin, value);
           }, 2000);
         });
 

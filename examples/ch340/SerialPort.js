@@ -1,12 +1,14 @@
 /**
- * Polyfill for CH340. 
+ * Polyfill for WebSerial
+ * Currently only supports: CH340. 
  * Similar API as https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
  * 
  * Based on code from https://stackoverflow.com/questions/64929987/webusb-api-working-but-the-data-received-arent-decoded-properly
  */
+
 //set it to the active device..
-let device = {};
-let serial = {};
+export let device = {};
+let chips = {};
 let port;
 
 export const config = {
@@ -181,7 +183,7 @@ export class SerialPort {
           this.device_.selectAlternateInterface(this.interfaceNumber_, 0)
         )
         //4: we configure in and out transmissions, based on detected hardware
-        .then(() => serial[device.chip](this))
+        .then(() => chips[device.chip](this))
         //5: we start the loop
         .then(() => {
           //console.log(this);
@@ -192,7 +194,7 @@ export class SerialPort {
 
   //upon disconnect, what to do
   async disconnect() {
-    await serial[device.chip](this).DISCONNECT;
+    await chips[device.chip](this).DISCONNECT;
   }
 
   //send data, what to do
@@ -202,7 +204,7 @@ export class SerialPort {
 }
 
 // these are the hardware specific initialization procedures...
-serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
+chips["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
   let data = hexToDataView(0); // null data
   await controlledTransfer(
     obj,
@@ -304,12 +306,12 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     config.CH340.REG_CONTROL_STATUS,
     data
   );
-  await serial["CH340"].setBaudRate(obj, baudRate);
+  await chips["CH340"].setBaudRate(obj, baudRate);
 
   // now what? all the control transfers came back "ok"?
 };
 
-serial["CH340"].setBaudRate = async function (obj, baudRate) {
+chips["CH340"].setBaudRate = async function (obj, baudRate) {
   let data = hexToDataView(0);
   await controlledTransfer(
     obj,
@@ -342,7 +344,7 @@ serial["CH340"].setBaudRate = async function (obj, baudRate) {
   );
 };
 
-serial["CH340"].DISCONNECT = async function (obj) {
+chips["CH340"].DISCONNECT = async function (obj) {
   await controlledTransfer(
     obj,
     "in",
@@ -353,27 +355,27 @@ serial["CH340"].DISCONNECT = async function (obj) {
   );
 };
 
-serial["CP210x"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["CP210x"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
-serial["CP2105"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["CP2105"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
-serial["CP2108"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["CP2108"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
-serial["PL2303"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["PL2303"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
-serial["FT2232H"] = async function (
+chips["FT2232H"] = async function (
   obj,
   baudRate = config.DEFAULT_BAUD_RATE
 ) {};
 
-serial["FT4232H"] = async function (
+chips["FT4232H"] = async function (
   obj,
   baudRate = config.DEFAULT_BAUD_RATE
 ) {};
 
-serial["FT232H"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["FT232H"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
-serial["FT231X"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
+chips["FT231X"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
 async function controlledTransfer(
   object,

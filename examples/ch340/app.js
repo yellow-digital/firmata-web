@@ -188,7 +188,7 @@ serial.Port.prototype.send = function (data) {
   return this.device_.transferOut(this.endpointOut_, data);
 };
 
-serial.controlledTransfer = async function (
+async function controlledTransfer (
   object,
   direction,
   type,
@@ -302,7 +302,7 @@ serial.arrayBufferToHex = function (arrayBuffer) {
 // these are the hardware specific initialization procedures...
 serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
   let data = serial.hexToDataView(0); // null data
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -312,7 +312,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     data,
     0xb2b9
   ); // first request...
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -320,7 +320,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     config.CH340.REG_MODEM_CTRL,
     config.CH340.REG_MODEM_VALUE_ON
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -328,7 +328,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     config.CH340.REG_MODEM_CTRL,
     config.CH340.REG_MODEM_VALUE_CALL
   );
-  let r = await serial.controlledTransfer(
+  let r = await controlledTransfer(
     obj,
     "in",
     "vendor",
@@ -342,7 +342,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     // we have an error
     return;
   }
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -351,7 +351,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     config.CH340.REG_CONTROL_STATUS,
     data
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -361,7 +361,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     data,
     0xb282
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -371,7 +371,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     data,
     0x0008
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -381,7 +381,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     data,
     0x00c3
   );
-  r = await serial.controlledTransfer(
+  r = await controlledTransfer(
     obj,
     "in",
     "vendor",
@@ -395,7 +395,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
     // we have an error
     return;
   }
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -411,7 +411,7 @@ serial["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
 
 serial["CH340"].setBaudRate = async function (obj, baudRate) {
   let data = serial.hexToDataView(0);
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -421,7 +421,7 @@ serial["CH340"].setBaudRate = async function (obj, baudRate) {
     data,
     config.CH340.BAUD_RATE[baudRate].FACTOR
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -431,7 +431,7 @@ serial["CH340"].setBaudRate = async function (obj, baudRate) {
     data,
     config.CH340.BAUD_RATE[baudRate].OFFSET
   );
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "out",
     "vendor",
@@ -443,7 +443,7 @@ serial["CH340"].setBaudRate = async function (obj, baudRate) {
 };
 
 serial["CH340"].DISCONNECT = async function (obj) {
-  await serial.controlledTransfer(
+  await controlledTransfer(
     obj,
     "in",
     "vendor",

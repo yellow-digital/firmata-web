@@ -77,6 +77,10 @@ export class SerialPort {
     this.device_ = device;
   }
 
+  // Hooks
+  onReceive(data) {}
+  onReceiveError(err) {}
+
   //here's the config + read loop is taking place....
   connect() {
     //this is the read loop on whatever port is currently used... it will repeat itself

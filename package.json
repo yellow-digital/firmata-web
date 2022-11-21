@@ -18,5 +18,8 @@
     "dev": "npx browser-sync . --https --directory --watch",
     "build": "npx rollup lib/index.js -o dist/firmata-web.js",
     "min": "terser -c --module dist/firmata-web.js -o dist/firmata-web.min.js"
+  },
+  "devDependencies": {
+    "@types/w3c-web-usb": "^1.0.6"
   }
 }

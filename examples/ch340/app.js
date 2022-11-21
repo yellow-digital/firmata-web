@@ -1,8 +1,6 @@
 import { Firmata, Emitter } from "../../lib/index.js";
 import { SerialPort } from "./SerialPort.js";
 
-const serial = new SerialPort()
-
 export class CustomTransport extends Emitter {
   constructor(port) {
     super();
@@ -26,7 +24,9 @@ export class CustomTransport extends Emitter {
 const baudRate = 57600; // Default Firmata baudrate
 
 // ====
-// custom serial polyfill
+// use the custom serial polyfill
+const serial = new SerialPort()
+
 {
   // Autoconnect
   // Get all serial ports the user has previously granted the website access to.

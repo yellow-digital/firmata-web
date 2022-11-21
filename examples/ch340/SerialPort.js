@@ -406,20 +406,6 @@ function hexToDataView (number) {
   return new DataView(array.buffer);
 };
 
-// you can give this method a string like "00 AA F2 01 23" or "0x00 0xAA 0xF2 0x01 0x23" and it will turn it into a DataView for the webUSB API transfer data
-function hexStringArrayToDataView(hexString) {
-  // remove the leading 0x (if any)
-  hexString = hexString.replace(/^0x/, "");
-  // split the string into pairs of octets
-  let pairs = hexString.split(/ /);
-  // convert the octets to integers
-  let integers = pairs.map(function (s) {
-    return parseInt(s, 16);
-  });
-  let array = new Uint8Array(integers);
-  return new DataView(array.buffer);
-};
-
 function arrayBufferToHex(arrayBuffer) {
   let hex =
     "0x0" +

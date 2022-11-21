@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "target": "esnext",
+    "baseUrl": "./",
+    "paths": {
+      "firmata-web/*": [
+        "*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

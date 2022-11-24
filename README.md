@@ -12,8 +12,9 @@ Changes to original library:
 - a class `WebSerialTransport` to bridge the gap between [firmata-io] and [WebSerial].
 
 # Roadmap
-- [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
 - [X] Remake similar UI as the desktop tool.
+- [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
+- [-] Polyfill for common serial usb devices so it also works on browsers without [WebSerial].
 
 # Usage
 The API is for most part the same as [firmata-io]. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial]. 

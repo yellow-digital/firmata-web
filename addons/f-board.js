@@ -11,7 +11,7 @@ import { Firmata, TYPES } from "../lib/index.js";
 import {
   defineCustomElement,
   reactive,
-} from "https://unpkg.com/vue@3/dist/vue.esm-browser.js";
+} from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
 
 function swap(o, r = {}) {
   return Object.keys(o).map((k) => (r[o[k]] = k)) && r;
@@ -131,9 +131,10 @@ const MyVueElement = {
           @input="onSetServo(index)($event)"
           type="range"
           min="0"
-          max="360"
+          max="180"
         />
         <div>{{pin.value}}</div>
+        <button @click="board.servoWrite(index, 90)">center</button>
       </div>
       <div v-if="Number(pin.mode) === TYPES.MODES.OUTPUT">
         <input

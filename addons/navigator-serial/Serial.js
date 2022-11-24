@@ -6,10 +6,11 @@
  * Based on code from https://stackoverflow.com/questions/64929987/webusb-api-working-but-the-data-received-arent-decoded-properly
  */
 
+import ch340 from "./chips/ch340.js";
+
 //set it to the active device..
 export let device = {};
-let chips = {};
-let port;
+const chips = {};
 
 export const config = {
   DEBUG: false,
@@ -80,15 +81,10 @@ export const table = {
   },
 };
 
-export class SerialPort {
-  constructor(device) {
-    this.device_ = device;
-  }
-
-  // Hooks
-  onReceive(data) {}
-  onReceiveError(err) {}
-
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API
+ */
+export class Serial {
   getPorts() {
     return navigator.usb.getDevices().then((devices) => {
       return devices.map((device) => new SerialPort(device));
@@ -104,6 +100,21 @@ export class SerialPort {
     const port = new SerialPort(device);
     return port
   }
+}
+
+export const serial = new Serial()
+
+/**
+ * https://developer.mozilla.org/en-US/docs/Web/API/SerialPort
+ */
+export class SerialPort {
+  constructor(device) {
+    this.device_ = device;
+  }
+
+  // Hooks
+  onReceive(data) {}
+  onReceiveError(err) {}
 
   /**
    * https://developer.mozilla.org/en-US/docs/Web/API/SerialPort/open
@@ -183,10 +194,15 @@ export class SerialPort {
           this.device_.selectAlternateInterface(this.interfaceNumber_, 0)
         )
         //4: we configure in and out transmissions, based on detected hardware
-        .then(() => chips[device.chip](this))
+        .then(() => {
+          // console.log(chips, device.chip)
+          if(![device.chip]) {
+            throw new Error(`Chip not support: ${device.chip}`)
+          }
+          chips[device.chip](this)
+        })
         //5: we start the loop
         .then(() => {
-          //console.log(this);
           readLoop();
         })
     );
@@ -203,157 +219,8 @@ export class SerialPort {
   }
 }
 
-// these are the hardware specific initialization procedures...
-chips["CH340"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {
-  let data = hexToDataView(0); // null data
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_SERIAL_INITIATION,
-    config.CH340.REG_SERIAL,
-    data,
-    0xb2b9
-  ); // first request...
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REG_MODEM_CTRL,
-    config.CH340.REG_MODEM_VALUE_ON
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REG_MODEM_CTRL,
-    config.CH340.REG_MODEM_VALUE_CALL
-  );
-  let r = await controlledTransfer(
-    obj,
-    "in",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_READ_REGISTRY,
-    0x0706,
-    2
-  );
-  if (!r) {
-    // we have an error
-    return;
-  }
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_CONTROL_STATUS,
-    data
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_BAUD_FACTOR,
-    data,
-    0xb282
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_BAUD_OFFSET,
-    data,
-    0x0008
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_BAUD_LOW,
-    data,
-    0x00c3
-  );
-  r = await controlledTransfer(
-    obj,
-    "in",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_READ_REGISTRY,
-    0x0706,
-    2
-  );
-  if (!r) {
-    // we have an error
-    return;
-  }
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_CONTROL_STATUS,
-    data
-  );
-  await chips["CH340"].setBaudRate(obj, baudRate);
-
-  // now what? all the control transfers came back "ok"?
-};
-
-chips["CH340"].setBaudRate = async function (obj, baudRate) {
-  let data = hexToDataView(0);
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_BAUD_FACTOR,
-    data,
-    config.CH340.BAUD_RATE[baudRate].FACTOR
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_BAUD_OFFSET,
-    data,
-    config.CH340.BAUD_RATE[baudRate].OFFSET
-  );
-  await controlledTransfer(
-    obj,
-    "out",
-    "vendor",
-    "device",
-    config.CH340.REQUEST_WRITE_REGISTRY,
-    config.CH340.REG_CONTROL_STATUS,
-    data
-  );
-};
-
-chips["CH340"].DISCONNECT = async function (obj) {
-  await controlledTransfer(
-    obj,
-    "in",
-    "vendor",
-    "device",
-    config.CH340.REG_MODEM_CTRL,
-    config.CH340.REG_MODEM_VALUE_OFF
-  );
-};
+// Register chips
+chips["CH340"] = ch340
 
 chips["CP210x"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
@@ -376,69 +243,3 @@ chips["FT4232H"] = async function (
 chips["FT232H"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
 
 chips["FT231X"] = async function (obj, baudRate = config.DEFAULT_BAUD_RATE) {};
-
-async function controlledTransfer(
-  object,
-  direction,
-  type,
-  recipient,
-  request,
-  value = 0,
-  data = new DataView(new ArrayBuffer(0)),
-  index = object.interfaceNumber_
-) {
-  direction = direction.charAt(0).toUpperCase() + direction.slice(1);
-  type = type.toLowerCase();
-  recipient = recipient.toLowerCase();
-  if (data.byteLength === 0 && direction === "In") {
-    // we set how many bits we want back for an "in"
-    // so set data = 0....N in the call otherwise it will default to 0
-    data = 0;
-  }
-  const obj = {
-    requestType: type,
-    recipient: recipient,
-    request: request,
-    value: value,
-    index: index,
-  };
-
-  return await object.device_["controlTransfer" + direction](obj, data).then(
-    (res) => {
-      if (config.DEBUG) {
-        //debugger;  // remove comment for extra debugging tools
-        console.log(res);
-      }
-      if (res.status !== "ok") {
-        console.warn("error!", obj, data); // add more here
-      }
-      if (res.data !== undefined && res.data.buffer !== undefined) {
-        return res.data.buffer;
-      }
-      return null;
-    }
-  );
-}
-
-// you can really use any numerical value since JS treat them the same:
-// dec = 15         // dec will be set to 15
-// bin = 0b1111;    // bin will be set to 15
-// oct = 0o17;      // oct will be set to 15
-// oxx = 017;       // oxx will be set to 15
-// hex = 0xF;       // hex will be set to 15
-// note: bB oO xX are all valid
-function hexToDataView(number) {
-  if (number === 0) {
-    let array = new Uint8Array([0]);
-    return new DataView(array.buffer);
-  }
-  let hexString = number.toString(16);
-  // split the string into pairs of octets
-  let pairs = hexString.match(/[\dA-F]{2}/gi);
-  // convert the octets to integers
-  let integers = pairs.map(function (s) {
-    return parseInt(s, 16);
-  });
-  let array = new Uint8Array(integers);
-  return new DataView(array.buffer);
-}

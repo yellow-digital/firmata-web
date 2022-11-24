@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, width=device-width, viewport-fit=cover"
+    />
+    <script type="importmap">
+      {
+        "imports": {
+          "firmata-web/": "../../"
+        }
+      }
+    </script>
+
+    <title>Firmata Test</title>
+    <style>
+      @import url("../style.css");
+    </style>
+  </head>
+  <body>
+    <button id="requestPort">Connect</button>
+    <div id="status"></div>
+
+    <f-board connect></f-board>
+
+    <script type="module">
+      import "firmata-web/addons/f-board.js";
+      import "firmata-web/addons/f-board-config.js";
+      import "firmata-web/addons/f-board-connector.js";
+      import { Firmata, Emitter } from "firmata-web/lib/index.js";
+      import { serial } from "firmata-web/addons/navigator-serial/index.js";
+
+      const baudRate = 57600; // Default Firmata baudrate
+      const boardEl = document.querySelector("f-board");
+
+      /**
+       * Transport for binding firmata to navigator-serial
+       */
+      export class CustomTransport extends Emitter {
+        constructor(port) {
+          super();
+          this.port = port;
+
+          port.onReceive = (data) => {
+            //   console.log('RX', new TextDecoder().decode(data.buffer));
+            this.emit("data", new Uint8Array(data.buffer));
+          };
+          port.onReceiveError = (error) => {
+            console.error(error);
+            port.disconnect();
+          };
+        }
+
+        async write(data) {
+          this.port.send(data);
+        }
+      }
+
+      // Set to polyfill
+      const navigatorSerial = serial; // navigator.serial
+
+      // ====
+      // Make serial connection 
+      {
+        // Get all serial ports the user has previously granted the website access to.
+        const ports = await navigatorSerial.getPorts();
+        if (ports.length) {
+          connect(ports[0]);
+        }
+
+        document
+          .querySelector("#requestPort")
+          .addEventListener("click", async () => {
+            // Prompt user to select any serial port.
+            const port = await navigatorSerial.requestPort();
+
+            connect(port);
+          });
+      }
+
+      async function connect(port) {
+        const statusEl = document.querySelector("#status");
+        console.log("Connecting to", port);
+        statusEl.innerHTML = `Connecting...`;
+
+        // Wait for the serial port to open.
+        await port.open({ baudRate });
+
+        // Create transport
+        // const transport = new WebSerialTransport(port);
+        const transport = new CustomTransport(port);
+
+        // Create board
+        const board = new Firmata(transport);
+
+        // Expose
+        window.board = board;
+
+        board.on("ready", () => {
+          statusEl.innerHTML = `board ready`;
+
+          console.log("ready", board);
+          boardEl._instance.data.board = board;
+        });
+
+        board.on("connect", () => console.log("Connected!"));
+
+        board.on("close", () => {
+          // Unplug the board to see this event!
+          console.log("Closed!");
+        });
+      }
+    </script>
+  </body>
+</html>

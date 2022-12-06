@@ -17,7 +17,7 @@ Changes to original library:
 - [-] Polyfill for common serial usb devices so it also works on browsers without [WebSerial].
 
 # Installation
-```
+```html
 <script type="importmap">
 {
     "imports": {

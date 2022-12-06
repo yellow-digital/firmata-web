@@ -16,6 +16,22 @@ Changes to original library:
 - [ ] Remove the `Buffer` dependency by using `Uint8Array` directly.
 - [-] Polyfill for common serial usb devices so it also works on browsers without [WebSerial].
 
+# Installation
+```
+<script type="importmap">
+{
+    "imports": {
+      "firmata-web": "https://cdn.jsdelivr.net/npm/firmata-web"
+    }
+}
+</script>
+
+<script>
+import { Firmata, WebSerialTransport } from "firmata-web";
+</script>
+```
+
+
 # Usage
 The API is for most part the same as [firmata-io]. Only the bootstrapping is a bit different. `WebSerialTransport` should be used to bridge the gap between [firmata-io] and [WebSerial]. 
 

@@ -7,10 +7,10 @@
     "Julian Gautier"
   ],
   "license": "MIT",
-  "homepage": "http://www.github.com/firmata/firmata.js",
+  "homepage": "https://yellow-digital.github.io/firmata-web/",
   "repository": {
     "type": "git",
-    "url": "git://github.com/firmata/firmata.js.git"
+    "url": "git://github.com/yellow-digital/firmata-web.git"
   },
   "main": "lib/index.js",
   "scripts": {

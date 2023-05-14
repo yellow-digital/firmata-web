@@ -1,88 +1,159 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="initial-scale=1, width=device-width, viewport-fit=cover"
-    />
-    <title>Firmata Web Example</title>
-  </head>
-  <body>
-    <div class="app">
-      <button id="requestPort">Connect</button>
-      <div id="status">Led is off</div>
-    </div>
 
-    <script type="module">
-      import { Firmata, WebSerialTransport } from "../lib/index.js";
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover" />
+  <title>Firmata Web Example</title>
+</head>
 
-      const baudRate = 57600; // Default Firmata baudrate
+<body>
+  <div class="app">
+    <button id="requestPort">Connect</button>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <br />
 
-      // ====
-      // navigator.serial
-      {
-        // Get all serial ports the user has previously granted the website access to.
-        const ports = await navigator.serial.getPorts();
-        if (ports.length) {
-          connect(ports[0]);
-        }
+    <div id="status">Led is off</div>
 
-        document
-          .querySelector("#requestPort")
-          .addEventListener("click", async () => {
-            // Prompt user to select any serial port.
-            const port = await navigator.serial.requestPort();
+    <br/>
+    <div id="x">0</div>
+    <div id="y">0</div>
+    <div id="z">0</div>
+    <div id="ax">0</div>
+    <div id="ay">0</div>
+    <div id="az">0</div>
+  </div>
 
-            connect(port);
-          });
+  <script type="module">
+    import { Firmata, WebSerialTransport } from "../lib/index.js";
+
+    const baudRate = 57600; // Default Firmata baudrate
+
+    // ====
+    // navigator.serial
+    {
+      // Get all serial ports the user has previously granted the website access to.
+      const ports = await navigator.serial.getPorts();
+      if (ports.length) {
+        connect(ports[0]);
       }
 
-      async function connect(port) {
-        const statusEl = document.querySelector("#status");
-        console.log("Connecting to", port);
-        statusEl.innerHTML = `Connecting...`;
+      document
+        .querySelector("#requestPort")
+        .addEventListener("click", async () => {
+          // Prompt user to select any serial port.
+          const port = await navigator.serial.requestPort();
 
-        // Wait for the serial port to open.
-        await port.open({ baudRate });
-
-        // Create transport
-        const transport = new WebSerialTransport(port);
-        // Log transport
-        // transport.on('write', d => console.log('OUT', d))
-        // transport.on('data', d => console.log('IN', d))
-
-        // Create board
-        const board = new Firmata(transport);
-
-        // Expose
-        window.board = board;
-
-        board.on("ready", () => {
-          statusEl.innerHTML = `board ready`;
-
-          console.log("ready");
-
-          // Arduino is ready to communicate
-          const pin = 13;
-          let state = 1;
-
-          board.pinMode(pin, board.MODES.OUTPUT);
-
-          setInterval(() => {
-            const value = (state ^= 1);
-            statusEl.innerHTML = `Led is : ${value}`;
-            board.digitalWrite(pin, value);
-          }, 2000);
+          connect(port);
         });
 
-        board.on("connect", () => console.log("Connected!"));
 
-        board.on("close", () => {
-          // Unplug the board to see this event!
-          console.log("Closed!");
+      document
+        .querySelector("#start")
+        .addEventListener("click", async () => {
+          window.board.ga_set_on();
         });
-      }
-    </script>
-  </body>
+
+      document
+        .querySelector("#stop")
+        .addEventListener("click", async () => {
+          window.board.ga_set_off();
+        });
+    }
+
+    function format(uint8) {
+       return Array.from(uint8)
+        .map((i) => `0x${i.toString(16).padStart(2, '0')}`)
+        .join(', ');
+    }
+
+    async function connect(port) {
+      const statusEl = document.querySelector("#status");
+      const xvalueEl = document.querySelector("#x");
+      const yvalueEl = document.querySelector("#y");
+      const zvalueEl = document.querySelector("#z");
+      const axvalueEl = document.querySelector("#ax");
+      const ayvalueEl = document.querySelector("#ay");
+      const azvalueEl = document.querySelector("#az");
+      console.log("Connecting to", port);
+      statusEl.innerHTML = `Connecting...`;
+
+      // Wait for the serial port to open.
+      await port.open({ baudRate });
+
+      // Create transport
+      const transport = new WebSerialTransport(port);
+      // Log transport
+      // transport.on('write', d => console.log('OUT', d))
+      // transport.on('data', d => console.log(`IN:${format(d)}`))
+
+      // Create board
+      const board = new Firmata(transport);
+
+      // Expose
+      window.board = board;
+      window.count = 0;
+      board.on("ready", () => {
+        statusEl.innerHTML = `board ready`;
+
+        console.log("ready");
+
+        // Arduino is ready to communicate
+        const pin = 2;
+        let state = 1;
+
+        board.pinMode(pin, board.MODES.OUTPUT);
+        board.glb_setorientation(false);
+
+        console.log("---------------------------------------")
+
+
+        setInterval(() => {
+
+          const value = (state ^= 1);
+          statusEl.innerHTML = `Led is : ${value}`;
+          board.digitalWrite(pin, value);
+
+          // board.glb_setled(1, count % 1023);
+          // board.glb_setled(2, 1023- (count % 1023));
+          // board.glb_setled(3, count % 1023);
+          // board.glb_setled(4, 1023-(count % 1023));
+          // board.glb_setled(5, count % 1023);
+          // board.glb_setled(6, 1023-(count % 1023));
+          // board.glb_setled(7, count % 1023);
+          // board.glb_setled(8, count % 1023);
+          // board.glb_setled(9,0);
+          // board.glb_setled(10,10);
+
+          // board.analogRead(1,(i)=>console.log(`A0=${i}`))
+          board.glb_setlevel(count % 1024)
+          count = count + 100;
+
+        }, 100);
+      });
+
+      const roundToNearest5 = x => Math.round(x/5)*5
+
+      board.on("POSITION",(pos)=>{
+        xvalueEl.innerHTML=pos[0]
+        yvalueEl.innerHTML=pos[1]
+        zvalueEl.innerHTML=pos[2]
+        axvalueEl.innerHTML=pos[3]
+        ayvalueEl.innerHTML=pos[4]
+        azvalueEl.innerHTML=pos[5]
+
+        // window.board.glb_setlevel=pos[0]
+      })
+
+      board.on("connect", () => console.log("Connected!"));
+
+      board.on("close", () => {
+        // Unplug the board to see this event!
+        console.log("Closed!");
+      });
+    }
+  </script>
+</body>
+
 </html>

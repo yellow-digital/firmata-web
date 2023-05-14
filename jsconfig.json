@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "checkJs": true,
-    "target": "esnext",
+    "target": "es2022",
     "baseUrl": "./",
     "paths": {
       "firmata-web/*": [
